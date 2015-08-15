@@ -10,8 +10,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -108,32 +110,35 @@ public class ServletRequest {
 		}
 		
 		// load the git repository with JGit
-		Git repo = Git.open(gitPath);
+		Git git = Git.open(gitPath);
+		Repository repo = git.getRepository();
 		// TODO The very first call to this method takes ages (what's the library doing there?
 		// and how can we "prepone" this activity such that reply times are better right from the beginning?)
 		
 		// resolve the given reference within this git repository
-		Ref ref = repo.getRepository().getRef(loc.ref);
+		Ref ref = repo.getRef(loc.ref);
 		if (ref == null) { 
 			throw new LocalInternalServerException("Specified reference could not be found / invalid reference");
 		}
 		
-		// determine the Commit ID, which is behind that reference 
-		String commitid = ref.getObjectId().getName();
+		// determine the Commit ID, which is behind that reference
+		ObjectId commitoid = ref.getObjectId();
+		String commitid = commitoid.getName();
 		
 		this.addDebugHeader("commitid", commitid);
 
 		// Prepare to search for the files within this commit
-		TreeWalk treeWalk = new TreeWalk(repo.getRepository());
+		TreeWalk treeWalk = new TreeWalk(repo);
 		RevWalk rWalk = null;
 		try {
-			rWalk = new RevWalk(repo.getRepository());
+			rWalk = new RevWalk(repo);
 			// determine the tree out of the commit which we just retrieved out of the reference
-			RevTree tree = rWalk.parseTree(ref.getObjectId());
+			RevTree tree = rWalk.parseTree(commitoid);
 			treeWalk.addTree(tree);
 			
 			// limit the search to only that single file, which the URL requests.
 			treeWalk.setFilter(PathFilter.create(loc.file));
+			// we know that there can only be one single file (if at all); that's why we don't need a loop here
 			if (!treeWalk.next()) {
 				throw new LocalInternalServerException("File could not be found for this reference");
 			}
@@ -142,12 +147,14 @@ public class ServletRequest {
 			rWalk.close();
 			treeWalk.close();
 		}
+		
+		ObjectId fileoid = treeWalk.getObjectId(0);
 		if (this.isDebug) {
-			this.addDebugHeader("objectid", treeWalk.getObjectId(0).getName());
+			this.addDebugHeader("objectid", fileoid.getName());
 		}
 		
 		// retrieve the Object from the Git repository
-		ObjectLoader loader = repo.getRepository().open(treeWalk.getObjectId(0));
+		ObjectLoader loader = repo.open(fileoid);
 		
 		// determine the length of the object which is requested
 		this.response.setContentLengthLong(loader.getSize());
