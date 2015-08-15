@@ -49,7 +49,7 @@ public class Servlet extends HttpServlet {
 		ServletRequest sr = new ServletRequest(path, request, response, this.repoBase);
 		try {
 			sr.process();
-		} catch (LocalInternalServerError lise) {
+		} catch (LocalInternalServerException lise) {
 			response.setStatus(500);
 			response.getWriter().println(lise.getMessage());
 		}

@@ -1,18 +1,18 @@
 package com.github.eaglerainbow.gitservlet;
 
-public class LocalInternalServerError extends Exception {
+public class LocalInternalServerException extends Exception {
 
-	public LocalInternalServerError(String message, Throwable cause) {
+	public LocalInternalServerException(String message, Throwable cause) {
 		super(message, cause);
 		// TODO Auto-generated constructor stub
 	}
 
-	public LocalInternalServerError(String message) {
+	public LocalInternalServerException(String message) {
 		super(message);
 		// TODO Auto-generated constructor stub
 	}
 
-	public LocalInternalServerError(Throwable cause) {
+	public LocalInternalServerException(Throwable cause) {
 		super(cause);
 		// TODO Auto-generated constructor stub
 	}
