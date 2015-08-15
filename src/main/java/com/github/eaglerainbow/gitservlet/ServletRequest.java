@@ -146,9 +146,7 @@ public class ServletRequest {
 		
 		this.addDebugHeader("commitid", commitid);
 
-		// Prepare to search for the files within this commit
 		ObjectId fileoid = this.getFileObjectIdInCommit(repo, commitoid, loc.file);
-
 		this.addDebugHeader("objectid", fileoid.getName());
 		
 		this.sendFile(repo, fileoid);
@@ -175,6 +173,7 @@ public class ServletRequest {
 		 * such that with the second request, we can directly get the
 		 * ObjectId of the file without a need for treewalking.  
 		 */
+		// Prepare to search for the files within this commit
 		TreeWalk treeWalk = new TreeWalk(repo);
 		RevWalk rWalk = null;
 		try {
