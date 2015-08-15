@@ -147,6 +147,11 @@ public class ServletRequest {
 		this.response.setContentLengthLong(loader.getSize());
 		ServletOutputStream sos = this.response.getOutputStream();
 		
+		/* TODO: if the size of a file gets large, we would read the entire file here at once
+		 * this could have a bad effect on the server's TCO, as this would occupy much
+		 * main memory ==> better to use a packaged approach here...
+		 */
+		
 		// copy the bytes from the git repository to the output stream of this servlet
 		byte[] data = loader.getBytes();
 		sos.write(data);
