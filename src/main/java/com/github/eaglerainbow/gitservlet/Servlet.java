@@ -47,7 +47,12 @@ public class Servlet extends HttpServlet {
 		String path = request.getRequestURI().substring(request.getContextPath().length());
 		
 		ServletRequest sr = new ServletRequest(path, request, response, this.repoBase);
-		sr.process();
+		try {
+			sr.process();
+		} catch (LocalInternalServerError lise) {
+			response.setStatus(500);
+			response.getWriter().println(lise.getMessage());
+		}
 	}
 
 }

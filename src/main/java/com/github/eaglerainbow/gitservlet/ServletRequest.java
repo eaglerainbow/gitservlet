@@ -87,13 +87,11 @@ public class ServletRequest {
     	this.response.setHeader("X-debug-"+name, value);
     }
     
-	public void process() throws IOException {
+	public void process() throws IOException, LocalInternalServerError {
 		
 		Location loc = this.determineLocation(path);
 		if (loc == null) {
-			this.response.setStatus(500);
-			this.response.getWriter().println("Invalid Path specified");
-			return;
+			throw new LocalInternalServerError("Invalid Path specified");
 		}
 		
 		this.addDebugHeader("repo", loc.repo);
@@ -103,9 +101,7 @@ public class ServletRequest {
 		// determine the path where the git repository is stored
 		File gitPath = this.repoBase.getRepository(loc.repo);
 		if (gitPath == null) {
-			this.response.setStatus(500);
-			this.response.getWriter().println("Unknown repository specified");
-			return;
+			throw new LocalInternalServerError("Unknown repository specified");
 		}
 		
 		// load the git repository with JGit
@@ -114,9 +110,7 @@ public class ServletRequest {
 		// resolve the given reference within this git repository
 		Ref ref = repo.getRepository().getRef(loc.ref);
 		if (ref == null) { 
-			this.response.setStatus(500);
-			this.response.getWriter().println("Specified reference could not be found / invalid reference");
-			return;
+			throw new LocalInternalServerError("Specified reference could not be found / invalid reference");
 		}
 		
 		// determine the Commit ID, which is behind that reference 
@@ -136,9 +130,7 @@ public class ServletRequest {
 			// limit the search to only that single file, which the URL requests.
 			treeWalk.setFilter(PathFilter.create(loc.file));
 			if (!treeWalk.next()) {
-				this.response.setStatus(500);
-				this.response.getWriter().println("File could not be found for this reference");
-				return;
+				throw new LocalInternalServerError("File could not be found for this reference");
 			}
 			
 		} finally {
