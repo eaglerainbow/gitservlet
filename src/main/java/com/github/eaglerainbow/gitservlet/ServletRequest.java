@@ -74,6 +74,19 @@ public class ServletRequest {
     	return loc;
     }
 	
+    /**
+     * adds a Header information to the HTTP request, in case that debugging is switched on
+     * @param name the name of the header parameter which shall be created ("X-debug-" is prefixed automatically by this routine)
+     * @param value the value of the parameter which shall be sent
+     */
+    private void addDebugHeader(String name, String value) {
+    	if (!this.isDebug)
+    		// if debugging is not switched on, ignore
+    		return;
+    	
+    	this.response.setHeader("X-debug-"+name, value);
+    }
+    
 	public void process() throws IOException {
 		
 		Location loc = this.determineLocation(path);
@@ -83,11 +96,9 @@ public class ServletRequest {
 			return;
 		}
 		
-		if (this.isDebug) {
-			this.response.setHeader("X-debug-repo", loc.repo);
-			this.response.setHeader("X-debug-ref", loc.ref);
-			this.response.setHeader("X-debug-path", loc.file);
-		}
+		this.addDebugHeader("repo", loc.repo);
+		this.addDebugHeader("ref", loc.ref);
+		this.addDebugHeader("path", loc.file);
 		
 		// determine the path where the git repository is stored
 		File gitPath = this.repoBase.getRepository(loc.repo);
@@ -111,9 +122,7 @@ public class ServletRequest {
 		// determine the Commit ID, which is behind that reference 
 		String commitid = ref.getObjectId().getName();
 		
-		if (this.isDebug) {
-			this.response.setHeader("X-debug-commitid", commitid);
-		}
+		this.addDebugHeader("commitid", commitid);
 
 		// Prepare to search for the files within this commit
 		TreeWalk treeWalk = new TreeWalk(repo.getRepository());
@@ -137,7 +146,7 @@ public class ServletRequest {
 			treeWalk.close();
 		}
 		if (this.isDebug) {
-			this.response.addHeader("X-debug-objectid", treeWalk.getObjectId(0).getName());
+			this.addDebugHeader("objectid", treeWalk.getObjectId(0).getName());
 		}
 		
 		// retrieve the Object from the Git repository
