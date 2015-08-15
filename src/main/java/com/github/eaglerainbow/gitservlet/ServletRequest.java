@@ -17,15 +17,16 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
+// TODO How to do Unit testing?
 public class ServletRequest {
 	private final String path;
 	private final HttpServletRequest request;
 	private final HttpServletResponse response;
 	private final RepoBase repoBase;
 	
+	// TODO: This approach does not support namespaced tags and/or branches => might be a requirement
 	private static final Pattern LOCATION_FROM_URL = Pattern.compile("^/([^/]*)/([^/]*)/(.*)");
 	private boolean isDebug;    
-	// TODO: This approach does not support namespaced tags and/or branches => might be a requirement
 	
 	private class Location {
     	/**
@@ -52,6 +53,8 @@ public class ServletRequest {
     	this.repoBase = repoBase;
     	
 		this.isDebug = "true".equals(this.request.getParameter("gitservlet-debug"));
+		// TODO: Bad approach: needs to be sured by some authorization schema; 
+		// with the current method, every productive user could gain internal server information  
 	}
 
 	/**
@@ -106,6 +109,8 @@ public class ServletRequest {
 		
 		// load the git repository with JGit
 		Git repo = Git.open(gitPath);
+		// TODO The very first call to this method takes ages (what's the library doing there?
+		// and how can we "prepone" this activity such that reply times are better right from the beginning?)
 		
 		// resolve the given reference within this git repository
 		Ref ref = repo.getRepository().getRef(loc.ref);
