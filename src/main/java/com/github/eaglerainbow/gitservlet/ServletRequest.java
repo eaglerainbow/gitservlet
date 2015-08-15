@@ -41,6 +41,7 @@ public class ServletRequest {
 	private final HttpServletRequest request;
 	private final HttpServletResponse response;
 	private final RepoBase repoBase;
+	private final Log log;
 	
 	// TODO: This approach does not support namespaced tags and/or branches => might be a requirement
 	private static final Pattern LOCATION_FROM_URL = Pattern.compile("^/([^/]*)/([^/]*)/(.*)");
@@ -64,7 +65,8 @@ public class ServletRequest {
     	public String file;
     }
 	
-    public ServletRequest(String path, HttpServletRequest request, HttpServletResponse response, RepoBase repoBase) {
+    public ServletRequest(Log genericLog, String path, HttpServletRequest request, HttpServletResponse response, RepoBase repoBase) {
+    	this.log = genericLog.deriveSpecificLog(this.getClass());
     	this.path = path;
     	this.request = request;
     	this.response = response;
@@ -72,7 +74,11 @@ public class ServletRequest {
     	
 		this.isDebug = "true".equals(this.request.getParameter("gitservlet-debug"));
 		// TODO: Bad approach: needs to be sured by some authorization schema; 
-		// with the current method, every productive user could gain internal server information  
+		// with the current method, every productive user could gain internal server information
+		
+		if (this.isDebug) {
+			this.log.fine("Debugging has been enabled");
+		}
 	}
 
 	/**
@@ -109,8 +115,9 @@ public class ServletRequest {
     }
     
 	public void process() throws IOException, LocalInternalServerException {
+		this.log.fine(String.format("Processing path request for %s", this.path));
 		
-		Location loc = this.determineLocation(path);
+		Location loc = this.determineLocation(this.path);
 		if (loc == null) {
 			throw new LocalInternalServerException("Invalid Path specified");
 		}
@@ -118,12 +125,14 @@ public class ServletRequest {
 		this.addDebugHeader("repo", loc.repo);
 		this.addDebugHeader("ref", loc.ref);
 		this.addDebugHeader("path", loc.file);
+		this.log.fine(String.format("Request: Repository: %s, Reference: %s, Filepath: %s", loc.repo, loc.ref, loc.file));
 		
 		// determine the path where the git repository is stored
 		File gitPath = this.repoBase.getRepository(loc.repo);
 		if (gitPath == null) {
 			throw new LocalInternalServerException("Unknown repository specified");
 		}
+		this.log.fine(String.format("Repository is located at %s", gitPath.toString()));
 		
 		// load the git repository with JGit
 		Git git = Git.open(gitPath);
@@ -143,10 +152,12 @@ public class ServletRequest {
 		// determine the Commit ID, which is behind that reference
 		ObjectId commitoid = ref.getObjectId();
 		String commitid = commitoid.getName();
+		this.log.fine(String.format("Commit ID behind ref: %s", commitid));
 		
 		this.addDebugHeader("commitid", commitid);
 
 		ObjectId fileoid = this.getFileObjectIdInCommit(repo, commitoid, loc.file);
+		this.log.fine(String.format("File object ID: %s", fileoid.getName()));
 		this.addDebugHeader("objectid", fileoid.getName());
 		
 		this.sendFile(repo, fileoid);
@@ -157,11 +168,15 @@ public class ServletRequest {
 		ObjectLoader loader = repo.open(fileoid);
 		
 		// determine the length of the object which is requested
-		this.response.setContentLengthLong(loader.getSize());
+		long size = loader.getSize();
+		this.log.fine(String.format("File size to transfer: %d", size));
+		this.response.setContentLengthLong(size);
 		ServletOutputStream sos = this.response.getOutputStream();
 		
 		// copy the bytes from the git repository to the output stream of this servlet
 		loader.copyTo(sos);
+		
+		this.log.fine("Transfer is completed");
 	}
 
 	private ObjectId getFileObjectIdInCommit(Repository repo, ObjectId commitoid, String filename) throws LocalInternalServerException, IOException {
@@ -173,6 +188,7 @@ public class ServletRequest {
 		 * such that with the second request, we can directly get the
 		 * ObjectId of the file without a need for treewalking.  
 		 */
+		this.log.fine(String.format("searching for file named %s in commit %s", filename, commitoid.getName()));
 		// Prepare to search for the files within this commit
 		TreeWalk treeWalk = new TreeWalk(repo);
 		RevWalk rWalk = null;
@@ -186,6 +202,7 @@ public class ServletRequest {
 			treeWalk.setFilter(PathFilter.create(filename));
 			// we know that there can only be one single file (if at all); that's why we don't need a loop here
 			if (!treeWalk.next()) {
+				this.log.info("File could not be found in the commit");
 				throw new LocalInternalServerException("File could not be found for this reference");
 			}
 			
@@ -193,7 +210,8 @@ public class ServletRequest {
 			rWalk.close();
 			treeWalk.close();
 		}
-		
-		return treeWalk.getObjectId(0);
+		ObjectId foid = treeWalk.getObjectId(0); 
+		this.log.fine(String.format("File has Git Object Id: %s", foid.getName()));
+		return foid;
 	}
 }

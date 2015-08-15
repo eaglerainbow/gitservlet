@@ -30,11 +30,14 @@ public class Servlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     
 	private final RepoBase repoBase;
+	private final Log genericLog;
     /**
      * @see HttpServlet#HttpServlet()
      */
     public Servlet() {
         super();
+        
+        this.genericLog = new Log(this);
         this.repoBase = new RepoBase(new File("E:\\repobase"));
         // TODO remove hard-coded location of repobase here (=> command line parameter?)
     }
@@ -46,7 +49,7 @@ public class Servlet extends HttpServlet {
 		// retrieve the URL which is requested
 		String path = request.getRequestURI().substring(request.getContextPath().length());
 		
-		ServletRequest sr = new ServletRequest(path, request, response, this.repoBase);
+		ServletRequest sr = new ServletRequest(this.genericLog, path, request, response, this.repoBase);
 		try {
 			sr.process();
 		} catch (LocalInternalServerException lise) {
