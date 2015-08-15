@@ -149,9 +149,7 @@ public class ServletRequest {
 		// Prepare to search for the files within this commit
 		ObjectId fileoid = this.getFileObjectIdInCommit(repo, commitoid, loc.file);
 
-		if (this.isDebug) {
-			this.addDebugHeader("objectid", fileoid.getName());
-		}
+		this.addDebugHeader("objectid", fileoid.getName());
 		
 		this.sendFile(repo, fileoid);
 	}
