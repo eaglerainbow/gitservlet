@@ -114,6 +114,9 @@ public class ServletRequest {
 		Repository repo = git.getRepository();
 		// TODO The very first call to this method takes ages (what's the library doing there?
 		// and how can we "prepone" this activity such that reply times are better right from the beginning?)
+
+		// TODO can we cache the access to the repository, such that we only need to open it once?
+		// How about concurrency and locking? Check the JGit API
 		
 		// resolve the given reference within this git repository
 		Ref ref = repo.getRef(loc.ref);
@@ -128,6 +131,36 @@ public class ServletRequest {
 		this.addDebugHeader("commitid", commitid);
 
 		// Prepare to search for the files within this commit
+		ObjectId fileoid = this.getFileObjectIdInCommit(repo, commitoid, loc.file);
+
+		if (this.isDebug) {
+			this.addDebugHeader("objectid", fileoid.getName());
+		}
+		
+		this.sendFile(repo, fileoid);
+	}
+
+	private void sendFile(Repository repo, ObjectId fileoid) throws IOException {
+		// retrieve the Object from the Git repository
+		ObjectLoader loader = repo.open(fileoid);
+		
+		// determine the length of the object which is requested
+		this.response.setContentLengthLong(loader.getSize());
+		ServletOutputStream sos = this.response.getOutputStream();
+		
+		// copy the bytes from the git repository to the output stream of this servlet
+		loader.copyTo(sos);
+	}
+
+	private ObjectId getFileObjectIdInCommit(Repository repo, ObjectId commitoid, String filename) throws LocalInternalServerException, IOException {
+		/* TODO All this tree walker things may become quite expensive
+		 * Clients tend to request multiple files within the same 
+		 * tree.
+		 * A better alternative would be to only do the tree walking once,
+		 * reading all files into a Map<ConcatOfCommitIdAndPath, ObjectId>
+		 * such that with the second request, we can directly get the
+		 * ObjectId of the file without a need for treewalking.  
+		 */
 		TreeWalk treeWalk = new TreeWalk(repo);
 		RevWalk rWalk = null;
 		try {
@@ -137,7 +170,7 @@ public class ServletRequest {
 			treeWalk.addTree(tree);
 			
 			// limit the search to only that single file, which the URL requests.
-			treeWalk.setFilter(PathFilter.create(loc.file));
+			treeWalk.setFilter(PathFilter.create(filename));
 			// we know that there can only be one single file (if at all); that's why we don't need a loop here
 			if (!treeWalk.next()) {
 				throw new LocalInternalServerException("File could not be found for this reference");
@@ -148,19 +181,6 @@ public class ServletRequest {
 			treeWalk.close();
 		}
 		
-		ObjectId fileoid = treeWalk.getObjectId(0);
-		if (this.isDebug) {
-			this.addDebugHeader("objectid", fileoid.getName());
-		}
-		
-		// retrieve the Object from the Git repository
-		ObjectLoader loader = repo.open(fileoid);
-		
-		// determine the length of the object which is requested
-		this.response.setContentLengthLong(loader.getSize());
-		ServletOutputStream sos = this.response.getOutputStream();
-		
-		// copy the bytes from the git repository to the output stream of this servlet
-		loader.copyTo(sos);
+		return treeWalk.getObjectId(0);
 	}
 }
