@@ -42,6 +42,18 @@ public class Servlet extends HttpServlet {
         // TODO remove hard-coded location of repobase here (=> command line parameter?)
     }
     
+	@Override
+	public void destroy() {
+		if (this.repoBase != null) {
+			this.repoBase.shutdown();
+			
+			try {
+				Thread.sleep(500); // allows the thread to really stop
+			} catch (InterruptedException e) {
+			} 
+		}
+	}
+
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
