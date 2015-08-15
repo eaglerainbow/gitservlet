@@ -98,6 +98,8 @@ public class Servlet extends HttpServlet {
 		// retrieve the URL which is requested
 		String path = request.getRequestURI().substring(request.getContextPath().length());
 		
+		boolean isDebug = "true".equals(request.getParameter("gitservlet-debug"));
+		
 		Location loc = this.determineLocation(path);
 		if (loc == null) {
 			response.setStatus(500);
@@ -105,9 +107,11 @@ public class Servlet extends HttpServlet {
 			return;
 		}
 		
-		response.setHeader("X-debug-repo", loc.repo);
-		response.setHeader("X-debug-ref", loc.ref);
-		response.setHeader("X-debug-path", loc.file);
+		if (isDebug) {
+			response.setHeader("X-debug-repo", loc.repo);
+			response.setHeader("X-debug-ref", loc.ref);
+			response.setHeader("X-debug-path", loc.file);
+		}
 		
 		// determine the path where the git repository is stored
 		File gitPath = this.repoBase.getRepository(loc.repo);
@@ -130,7 +134,10 @@ public class Servlet extends HttpServlet {
 		
 		// determine the Commit ID, which is behind that reference 
 		String commitid = ref.getObjectId().getName();
-		response.setHeader("X-debug-commitid", commitid);
+		
+		if (isDebug) {
+			response.setHeader("X-debug-commitid", commitid);
+		}
 
 		// Prepare to search for the files within this commit
 		TreeWalk treeWalk = new TreeWalk(repo.getRepository());
@@ -153,7 +160,9 @@ public class Servlet extends HttpServlet {
 			rWalk.close();
 			treeWalk.close();
 		}
-		response.addHeader("X-debug-objectid", treeWalk.getObjectId(0).getName());
+		if (isDebug) {
+			response.addHeader("X-debug-objectid", treeWalk.getObjectId(0).getName());
+		}
 		
 		// retrieve the Object from the Git repository
 		ObjectLoader loader = repo.getRepository().open(treeWalk.getObjectId(0));
