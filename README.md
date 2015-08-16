@@ -28,9 +28,13 @@ Via the URL *http://localhost:8080/secondrepo/master/readme.txt* are able to acc
 In the *secondrepo* you are creating a new branch called *newbranch*. You do some modifications to the *readme.txt* file. Once committed, you may immediately access the new variant of the file via the URL *http://localhost:8080/secondrepo/newbranch/readme.txt*. Yet, *http://localhost:8080/secondrepo/master/readme.txt* still shows the old version of the file. 
 Note that in *secondrepo* you still have *newbranch* checked out. 
 
+### Fifth Example
+In the *secondrepo* you are creating a new tag called *oldversion*. Stil being on the branch *newbranch* you are make some further modifications to the file *readme.txt*.
+The modified version of *readme.txt* is available at *http://localhost:8080/secondrepo/newbranch/readme.txt*. The previous version of the file *readme.txt* can still be accessed via *http://localhost:8080/secondrepo/oldversion/readme.txt*, as tags can be used as substitudes of branches.
+
 ## Benefits
 * it's a lightweight servlet with close to no external dependencies (or to be more precise: the dependencies are already bundled with the servlet ==> *self-contained*)
-* Publishing of content is as easy as committing changes to a git repository. The update API for your changes can be pushed remotely as you know from any git repository.
+* Publishing of content is as easy as committing changes to a git repository. You may use the git Remote API to pushed your changes to the public git repository.
 * Both branches and tags can be used to refer to versions (i.e. commits).
 
 ## Why not using github for this?
