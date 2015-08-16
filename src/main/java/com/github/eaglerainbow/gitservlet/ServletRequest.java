@@ -117,10 +117,13 @@ public class ServletRequest {
 	public void process() throws IOException, LocalInternalServerException {
 		this.log.fine(String.format("Processing path request for %s", this.path));
 		
+		long profiler_start = System.nanoTime();
+		
 		Location loc = this.determineLocation(this.path);
 		if (loc == null) {
 			throw new LocalInternalServerException("Invalid Path specified");
 		}
+		long profiler_determineLocation = System.nanoTime();
 		
 		this.addDebugHeader("repo", loc.repo);
 		this.addDebugHeader("ref", loc.ref);
@@ -134,6 +137,8 @@ public class ServletRequest {
 		}
 		this.log.fine(String.format("Repository is located at %s", gitPath.toString()));
 		
+		long profiler_determineRepo = System.nanoTime();
+		
 		// load the git repository with JGit
 		Git git = Git.open(gitPath);
 		Repository repo = git.getRepository();
@@ -142,6 +147,8 @@ public class ServletRequest {
 
 		// TODO can we cache the access to the repository, such that we only need to open it once?
 		// How about concurrency and locking? Check the JGit API
+		
+		long profiler_repoLoaded = System.nanoTime();
 		
 		// resolve the given reference within this git repository
 		Ref ref = repo.getRef(loc.ref);
@@ -154,13 +161,32 @@ public class ServletRequest {
 		String commitid = commitoid.getName();
 		this.log.fine(String.format("Commit ID behind ref: %s", commitid));
 		
+		long profiler_commitResolved = System.nanoTime();
+		
 		this.addDebugHeader("commitid", commitid);
 
 		ObjectId fileoid = this.getFileObjectIdInCommit(repo, commitoid, loc.file);
 		this.log.fine(String.format("File object ID: %s", fileoid.getName()));
 		this.addDebugHeader("objectid", fileoid.getName());
 		
+		long profiler_fileResolved = System.nanoTime();
+
+		/* Note that we can only send a debug header until we did not send
+		 * the HTTP body (in our case, this is the file itself) yet.
+		 */
+		if (this.isDebug) {
+			long delta_determineLocation = profiler_determineLocation - profiler_start;
+			long delta_determineRepo = profiler_determineRepo - profiler_determineLocation;
+			long delta_repoLoaded = profiler_repoLoaded - profiler_determineRepo;
+			long delta_commitResolved = profiler_commitResolved - profiler_repoLoaded;
+			long delta_fileResolved = profiler_fileResolved - profiler_commitResolved;
+			
+			this.addDebugHeader("profiler", String.format("%d %d %d %d %d", delta_determineLocation, delta_determineRepo,
+					delta_repoLoaded, delta_commitResolved, delta_fileResolved));
+		}
+
 		this.sendFile(repo, fileoid);
+		
 	}
 
 	private void sendFile(Repository repo, ObjectId fileoid) throws IOException {
