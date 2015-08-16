@@ -34,6 +34,7 @@ The modified version of *readme.txt* is available at *http://localhost:8080/seco
 
 ## Benefits
 * it's a lightweight servlet with close to no external dependencies (or to be more precise: the dependencies are already bundled with the servlet ==> *self-contained*)
+* Access to versioned data is extreme fast; yet, you may leverage the extremely efficient storage concept of git to reduce the amount of disk space required for each version.
 * Publishing of content is as easy as committing changes to a git repository. You may use the git Remote API to pushed your changes to the public git repository.
 * Both branches and tags can be used to refer to versions (i.e. commits).
 
@@ -41,3 +42,19 @@ The modified version of *readme.txt* is available at *http://localhost:8080/seco
 Github with its diverse raw- and preview features is capable of providing a very similiar set of features. Therefore, theoretically, it would be possible to also use the github infrastructure to perform the same steps. However, there are two major reasons for creating the servlet:
 1. Installing Github is a very heavy-weight activity and incorporates numerous external dependendies. 
 2. Gihub is intended (and therefore optimized) for source-code repository streaming and not for versioned deployment-like scenarios of compiled/build artifacts.
+
+## Performance Analysis
+A first brief performance analysis has yielded the following results:
+
+| Scenario | Processing Time |
+|:---------|----------------:|
+| First access after start (includes initialization of JGit Library | 6651 ms |
+| Second access to same file | 10 ms |
+| Different file in a newer commit (same repository) | 11 ms |
+| Copying the same repository within the RepoBase; access to copied repository | 8 ms |
+
+The environment was as follows:
+* Intel Core i7-3770
+* Windows 7 SP1
+* JDK 1.8.0_20
+* RepoBase was on a RAM drive (thus, close to no time for disk access to be expected in the figures above).
