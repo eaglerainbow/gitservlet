@@ -40,6 +40,7 @@ The modified version of *readme.txt* is available at *http://localhost:8080/seco
 
 ## Why not using github for this?
 Github with its diverse raw- and preview features is capable of providing a very similiar set of features. Therefore, theoretically, it would be possible to also use the github infrastructure to perform the same steps. However, there are two major reasons for creating the servlet:
+
 1. Installing Github is a very heavy-weight activity and incorporates numerous external dependendies. 
 2. Gihub is intended (and therefore optimized) for source-code repository streaming and not for versioned deployment-like scenarios of compiled/build artifacts.
 
