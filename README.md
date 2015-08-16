@@ -3,7 +3,8 @@
 ## Concept
 gitservlet is a J2EE servlet built with the Maven Infrastructure which allows to store the web resources in git repositories. The primary intention for this is to provide an easy-to-use, simple service to provide artifacts to consumers, which are subject to versioning.
 
-## First Example
+## Examples
+### First Example
 
 Let us assume the following environment:
 * You are running gitservlet with context */gitservlet* on your local J2EE webserver, which is available at *http://localhost:8080*.
@@ -14,10 +15,10 @@ Let us assume the following environment:
 
 In this situation you will be able to access the LICENSE file via the URL *http://localhost:8080/gitrepo/master/LICENSE*.
 
-## Second Example
+### Second Example
 Assume that the situation is as described above. However, additionally, while neither the J2EE webserver nor the servlet has been stopped, you are creating a new commit, changing the contents of the *LICENSE* file, thus creating a new commit. You access the same URL as denoted above. You will receive the new version of the file.
 
-## Third Example
+### Third Example
 In the directory *C:\repobase* you create another git repository called *secondrepo*. Thus, it is available at *C:\repobase\secondrepo*. You commit a file called *readme.txt* to this new repository.
 Note that you still did not stop the J2EE server nor was the servlet stopped as well. 
 
