@@ -34,15 +34,15 @@ The modified version of *readme.txt* is available at *http://localhost:8080/seco
 
 ## Benefits
 * it's a lightweight servlet with close to no external dependencies (or to be more precise: the dependencies are already bundled with the servlet ==> *self-contained*)
-* Access to versioned data is extreme fast; yet, you may leverage the extremely efficient storage concept of git to reduce the amount of disk space required for each version.
-* Publishing of content is as easy as committing changes to a git repository. You may use the git Remote API to pushed your changes to the public git repository.
+* Access to versioned data is extremely fast; yet, you may leverage the extremely efficient storage concept of git to reduce the amount of disk space required for each version.
+* Publishing of content is as easy as committing changes to a git repository. You may use the git Remote API to push your changes to the public git repository. There is no need to shutdown the servlet before, or to restart it after you have finished. Consumers requesting via an URL that refers to the file using a branch reference will automatically get the new file version. 
 * Both branches and tags can be used to refer to versions (i.e. commits).
 
 ## Why not using github for this?
-Github with its diverse raw- and preview features is capable of providing a very similiar set of features. Therefore, theoretically, it would be possible to also use the github infrastructure to perform the same steps. However, there are two major reasons for creating the servlet:
+Github with its diverse raw- and preview features is capable of providing a very similar set of features. Therefore, theoretically, it would be possible to also use the github infrastructure to perform the same steps. However, there are two major reasons for creating the servlet:
 
-1. Installing Github is a very heavy-weight activity and incorporates numerous external dependendies. 
-2. Gihub is intended (and therefore optimized) for source-code repository streaming and not for versioned deployment-like scenarios of compiled/build artifacts.
+1. Installing Github is a very heavy-weight activity and incorporates numerous external dependencies. 
+2. Github is intended (and therefore optimized) for source-code repository streaming and not for versioned deployment-like scenarios of compiled/build artifacts.
 
 ## Performance Analysis
 A first brief performance analysis has yielded the following results:
