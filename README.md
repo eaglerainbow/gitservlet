@@ -48,7 +48,7 @@ A first brief performance analysis has yielded the following results:
 
 | Scenario | Processing Time |
 |:---------|----------------:|
-| First access after start (includes initialization of JGit Library | 6651 ms |
+| First access after start (includes initialization of JGit Library) | 6651 ms |
 | Second access to same file | 10 ms |
 | Different file in a newer commit (same repository) | 11 ms |
 | Copying the same repository within the RepoBase; access to copied repository | 8 ms |
