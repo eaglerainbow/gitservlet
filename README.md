@@ -24,8 +24,14 @@ Note that you still did not stop the J2EE server nor was the servlet stopped as 
 
 Via the URL *http://localhost:8080/secondrepo/master/readme.txt* are able to access the contents of this new file as well. The servlet has automatically discovered the new repository and is streaming it based on inbound requests.
 
+### Fourth Example
+In the *secondrepo* you are creating a new branch called *newbranch*. You do some modifications to the *readme.txt* file. Once committed, you may immediately access the new variant of the file via the URL *http://localhost:8080/secondrepo/newbranch/readme.txt*. Yet, *http://localhost:8080/secondrepo/master/readme.txt* still shows the old version of the file. 
+Note that in *secondrepo* you still have *newbranch* checked out. 
+
 ## Benefits
-tbd
+* it's a lightweight servlet with close to no external dependencies (or to be more precise: the dependencies are already bundled with the servlet ==> *self-contained*)
+* Publishing of content is as easy as committing changes to a git repository. The update API for your changes can be pushed remotely as you know from any git repository.
+* Both branches and tags can be used to refer to versions (i.e. commits).
 
 ## Why not using github for this?
 Github with its diverse raw- and preview features is capable of providing a very similiar set of features. Therefore, theoretically, it would be possible to also use the github infrastructure to perform the same steps. However, there are two major reasons for creating the servlet:
