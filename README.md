@@ -57,4 +57,6 @@ The environment was as follows:
 * Intel Core i7-3770
 * Windows 7 SP1
 * JDK 1.8.0_20
+* Tomcat 8.0.24
 * RepoBase was on a RAM drive (thus, close to no time for disk access to be expected in the figures above).
+* Version of gitservlet under investigation: commit 76f257a7ba3868a4b7789d7d5e2815d099e76c9f
